@@ -260,7 +260,10 @@
     <p class="card-title">Today's status</p>
     <p class="card-note">Shows whether lunch or dinner has already been submitted today — so every shift can see it without asking.</p>
     <div id="statusToday" class="card-note">Loading…</div>
-    <button type="button" class="btn-secondary" id="refreshStatusBtn" style="margin-top:10px;width:100%;">Refresh</button>
+    <div class="actions" style="margin-top:10px;">
+      <button type="button" class="btn-secondary" id="refreshStatusBtn">Refresh</button>
+      <button type="button" class="btn-secondary" id="viewTodayBtn">See today's quantities</button>
+    </div>
   </div>
 
   <div class="card identity">
@@ -354,6 +357,20 @@
 
     <div class="actions" style="margin-top:24px;">
       <button class="btn-primary" id="recapCloseBtn" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="recap-screen" id="viewScreen">
+  <div class="recap-wrap">
+    <div class="recap-badge">Today's quantities</div>
+    <h2 class="recap-title">Quantities — <span id="viewDateText"></span></h2>
+    <p class="recap-sub">What's already been submitted for this date</p>
+
+    <div id="viewContent"></div>
+
+    <div class="actions" style="margin-top:24px;">
+      <button class="btn-primary" id="viewCloseBtn" type="button">Done</button>
     </div>
   </div>
 </div>
@@ -470,6 +487,90 @@
   document.getElementById("refreshStatusBtn").addEventListener("click", fetchStatus);
   dateInput.addEventListener("change", fetchStatus);
   fetchStatus();
+
+  // ---------- View today's submitted quantities ----------
+  function buildEntryBlock(entry) {
+    const wrap = el("div", { class: "recap-section" }, []);
+    const label = entry.service === "dejeuner" ? "Lunch" : entry.service === "diner" ? "Dinner" : (entry.service || "—");
+    let timeLabel = "";
+    if (entry.timestamp) {
+      const d = new Date(entry.timestamp);
+      if (!isNaN(d)) timeLabel = " at " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    }
+    wrap.appendChild(el("h3", {}, [`${label} — submitted by ${entry.name || "—"}${timeLabel}`]));
+
+    const dishNames = Object.keys(entry.dishes || {});
+    const picaNames = dishNames.filter(n => DISHES.picapica.indexOf(n) !== -1);
+    const platoNames = dishNames.filter(n => DISHES.platos.indexOf(n) !== -1);
+
+    function dishList(names) {
+      const ul = el("ul", { class: "recap-list" }, []);
+      let any = false;
+      names.forEach(name => {
+        const qty = entry.dishes[name];
+        if (qty) {
+          any = true;
+          ul.appendChild(el("li", {}, [`${name} — ${qty}`]));
+        }
+      });
+      if (!any) ul.appendChild(el("li", { class: "recap-empty" }, ["(no quantity entered)"]));
+      return ul;
+    }
+
+    wrap.appendChild(el("p", { class: "card-note", style: "margin-top:10px;" }, ["Pica Pica"]));
+    wrap.appendChild(dishList(picaNames));
+    wrap.appendChild(el("p", { class: "card-note", style: "margin-top:10px;" }, ["Platos"]));
+    wrap.appendChild(dishList(platoNames));
+
+    if (entry.comment) {
+      wrap.appendChild(el("p", { class: "card-note", style: "margin-top:10px;" }, ["Comments"]));
+      wrap.appendChild(el("p", {}, [entry.comment]));
+    }
+    if (entry.push && entry.push.length) {
+      wrap.appendChild(el("p", { class: "card-note", style: "margin-top:10px;" }, ["To push"]));
+      const ul = el("ul", { class: "recap-list" }, []);
+      entry.push.forEach(item => ul.appendChild(el("li", {}, [item])));
+      wrap.appendChild(ul);
+    }
+    return wrap;
+  }
+
+  document.getElementById("viewTodayBtn").addEventListener("click", () => {
+    const dateVal = dateInput.value;
+    document.getElementById("viewDateText").textContent = dateVal;
+    const content = document.getElementById("viewContent");
+    content.innerHTML = "";
+    content.appendChild(el("p", { class: "recap-empty" }, ["Loading…"]));
+    document.getElementById("viewScreen").classList.add("visible");
+
+    if (!isScriptConfigured()) {
+      content.innerHTML = "";
+      content.appendChild(el("p", { class: "recap-empty" }, ["Connect the Apps Script URL to see submitted quantities."]));
+      return;
+    }
+
+    fetch(`${APPS_SCRIPT_URL}?date=${encodeURIComponent(dateVal)}`)
+      .then(r => r.json())
+      .then(data => {
+        const entries = data.entries || [];
+        content.innerHTML = "";
+        if (entries.length === 0) {
+          content.appendChild(el("p", { class: "recap-empty" }, ["No submissions yet for this date."]));
+          return;
+        }
+        const order = { dejeuner: 0, diner: 1 };
+        entries.sort((a, b) => (order[a.service] !== undefined ? order[a.service] : 2) - (order[b.service] !== undefined ? order[b.service] : 2));
+        entries.forEach(entry => content.appendChild(buildEntryBlock(entry)));
+      })
+      .catch(() => {
+        content.innerHTML = "";
+        content.appendChild(el("p", { class: "recap-empty" }, ["Couldn't load quantities (connection)."]));
+      });
+  });
+
+  document.getElementById("viewCloseBtn").addEventListener("click", () => {
+    document.getElementById("viewScreen").classList.remove("visible");
+  });
 
   // Toggle service
   document.querySelectorAll("#serviceToggle button").forEach(btn => {
