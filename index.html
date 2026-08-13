@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen Sheet — Rosario</title>
+<style>
+  :root {
+    --ink: #1c1a17;
+    --paper: #faf7f2;
+    --card: #ffffff;
+    --line: #e4ddd1;
+    --accent: #b3401f;
+    --accent-soft: #f4e2da;
+    --ok: #4c7a4c;
+    --muted: #8a8378;
+    --success: #2f6d46;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 24px 16px 80px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  header { margin-bottom: 24px; }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 4px;
+  }
+  .card-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+
+  .identity { display: grid; gap: 14px; }
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input[type="date"], input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 15px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+  }
+  textarea { min-height: 80px; resize: vertical; line-height: 1.4; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-row button {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toggle-row button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .dish-block {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .dish-block:last-of-type { border-bottom: none; }
+  .dish-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dish-name { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+  .dish-qty { width: 76px; flex-shrink: 0; }
+  .dish-qty input { text-align: center; padding: 8px; margin: 0; }
+
+  .dish-note-toggle {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 11.5px;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+    margin-top: 6px;
+  }
+  .dish-note-input { display: none; margin-top: 8px; }
+  .dish-note-input.show { display: block; }
+  .dish-note-input input { font-size: 13.5px; padding: 8px 10px; }
+
+  .list-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .list-input-row input { margin-bottom: 0; }
+  .list-input-row button {
+    flex-shrink: 0;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .list-items { list-style: none; padding: 0; margin: 0; }
+  .list-items li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  .list-items li:last-child { border-bottom: none; }
+  .list-items li button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .list-empty { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button.btn-primary, button.btn-secondary {
+    flex: 1;
+    min-width: 140px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .status { font-size: 12.5px; color: var(--ok); text-align: center; margin-top: 10px; min-height: 16px; }
+
+  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 24px; }
+
+  .recap-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    display: none;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 24px 16px 60px;
+  }
+  .recap-screen.visible { display: block; }
+  .recap-wrap { max-width: 640px; margin: 0 auto; }
+  .recap-badge {
+    display: inline-block;
+    background: var(--success);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .recap-title { font-size: 26px; margin: 0 0 4px; }
+  .recap-sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+  .recap-section { margin-bottom: 20px; }
+  .recap-section h3 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 10px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  .recap-list li:last-child { border-bottom: none; }
+  .recap-empty { color: var(--muted); font-size: 13.5px; font-style: italic; }
+  .recap-close {
+    display: block;
+    margin: 28px auto 0;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rosario · Kitchen</div>
+    <h1>Kitchen Sheet</h1>
+    <p class="subtitle">Dish quantities, filled in at every service</p>
+  </header>
+
+  <div class="card" style="background:var(--accent-soft);border-color:var(--accent);">
+    <p class="card-title" style="margin-bottom:4px;">Instructions</p>
+    <p style="margin:0;font-size:14.5px;font-weight:600;">Complete before 11:15 for lunch, and before 18:15 for dinner.</p>
+  </div>
+
+  <div class="card" id="statusCard">
+    <p class="card-title">Today's status</p>
+    <p class="card-note">Shows whether lunch or dinner has already been submitted today — so every shift can see it without asking.</p>
+    <div id="statusToday" class="card-note">Loading…</div>
+    <button type="button" class="btn-secondary" id="refreshStatusBtn" style="margin-top:10px;width:100%;">Refresh</button>
+  </div>
+
+  <div class="card identity">
+    <p class="card-title">General</p>
+    <div class="field">
+      <label for="date">Date</label>
+      <input type="date" id="date">
+    </div>
+    <div class="field">
+      <label for="nom">Name</label>
+      <input type="text" id="nom" placeholder="First name">
+    </div>
+    <div class="field">
+      <label>Service</label>
+      <div class="toggle-row" id="serviceToggle">
+        <button type="button" data-service="dejeuner">Lunch</button>
+        <button type="button" data-service="diner">Dinner</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Pica Pica</p>
+    <p class="card-note">Quantity available / prepared for this service</p>
+    <div id="picapicaList"></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Platos</p>
+    <p class="card-note">Quantity available / prepared for this service</p>
+    <div id="platosList"></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Comments</p>
+    <p class="card-note">Anything general to flag for this service</p>
+    <textarea id="commentInput" placeholder="Any particular comment for this service?"></textarea>
+  </div>
+
+  <div class="card">
+    <p class="card-title">To push</p>
+    <p class="card-note">Dishes to sell first this service</p>
+    <div class="list-input-row">
+      <input type="text" id="pushInput" placeholder="Add a dish to push...">
+      <button type="button" id="pushAddBtn">+</button>
+    </div>
+    <ul class="list-items" id="pushList"></ul>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <button class="btn-secondary" id="resetBtn" type="button">Reset</button>
+      <button class="btn-primary" id="validateBtn" type="button">Submit sheet</button>
+    </div>
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <footer>
+    <span>Domingo — Rosario · Kitchen · auto-saved on this device</span>
+  </footer>
+</div>
+
+<div class="recap-screen" id="recapScreen">
+  <div class="recap-wrap">
+    <div class="recap-badge" id="recapBadgeText">Submitted</div>
+    <h2 class="recap-title">Kitchen sheet</h2>
+    <p class="recap-sub" id="recapSubText"></p>
+
+    <div class="recap-section">
+      <h3>Pica Pica</h3>
+      <ul class="recap-list" id="recapPicapica"></ul>
+    </div>
+
+    <div class="recap-section">
+      <h3>Platos</h3>
+      <ul class="recap-list" id="recapPlatos"></ul>
+    </div>
+
+    <div class="recap-section">
+      <h3>Comments</h3>
+      <p id="recapCommentValue" class="recap-empty">—</p>
+    </div>
+
+    <div class="recap-section">
+      <h3>To push</h3>
+      <ul class="recap-list" id="recapPush"></ul>
+    </div>
+
+    <div class="actions" style="margin-top:24px;">
+      <button class="btn-primary" id="recapSendBtn" type="button">Send by email</button>
+    </div>
+    <div class="status" id="recapStatusMsg"></div>
+
+    <button type="button" class="recap-close" id="recapCloseBtn">Back to sheet</button>
+  </div>
+</div>
+
+<script>
+  const RECIPIENT_EMAIL = "adrien@grupodomingo.io";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQllzw-MT05nNpSKAO3tzoCs3NyH1s4dPR2IC6i6mpDmsaxx4m6qBFyLlEFytOmzsa/exec";
+
+  const DISHES = {
+    picapica: [
+      "Patatas bravas",
+      "Salmorejo",
+      "Pimientos de Padrón",
+      "Tortilla",
+      "Tortilla txistorra",
+      "Salpicón",
+      "Mejillones en escabeche",
+    ],
+    platos: [
+      "Pisto con huevo frito rebozado de Galicia",
+      "Abanico ibérico, patatas fritas",
+      "Sardina del Atlántico ahumada, Ajo Blanco y naranja",
+      "Carrilleras de cerdo ibérico y cacao",
+    ],
+  };
+
+  let selectedService = null;
+  let pushItems = [];
+
+  function el(tag, attrs, children) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      if (k === "class") e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(c => e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+    return e;
+  }
+
+  function renderDishes(catKey, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    DISHES[catKey].forEach((name, idx) => {
+      const block = el("div", { class: "dish-block" }, []);
+      const row = el("div", { class: "dish-row" }, [
+        el("div", { class: "dish-name" }, [name]),
+        el("div", { class: "dish-qty" }, [
+          el("input", { type: "number", min: "0", placeholder: "0", id: `qty__${catKey}__${idx}` }, []),
+        ]),
+      ]);
+      const noteWrap = el("div", { class: "dish-note-input", id: `noteWrap__${catKey}__${idx}` }, [
+        el("input", { type: "text", id: `note__${catKey}__${idx}`, placeholder: "Recipe or side change for this dish..." }, []),
+      ]);
+      const toggleBtn = el("button", { type: "button", class: "dish-note-toggle", id: `noteToggle__${catKey}__${idx}` }, ["+ note"]);
+      toggleBtn.addEventListener("click", () => {
+        const wrap = document.getElementById(`noteWrap__${catKey}__${idx}`);
+        const showing = wrap.classList.toggle("show");
+        toggleBtn.textContent = showing ? "− hide note" : "+ note";
+        if (showing) wrap.querySelector("input").focus();
+      });
+      block.appendChild(row);
+      block.appendChild(toggleBtn);
+      block.appendChild(noteWrap);
+      container.appendChild(block);
+    });
+  }
+
+  renderDishes("picapica", "picapicaList");
+  renderDishes("platos", "platosList");
+
+  const dateInput = document.getElementById("date");
+  const today = new Date();
+  dateInput.value = today.toISOString().slice(0, 10);
+
+  function isScriptConfigured() {
+    return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("COLLER_ICI") !== 0;
+  }
+
+  function fetchStatus() {
+    const statusEl = document.getElementById("statusToday");
+    if (!isScriptConfigured()) {
+      statusEl.textContent = "Connect the Apps Script URL (see the .gs file) to enable shared tracking between devices.";
+      return;
+    }
+    statusEl.textContent = "Loading…";
+    const dateVal = dateInput.value;
+    fetch(`${APPS_SCRIPT_URL}?date=${encodeURIComponent(dateVal)}`)
+      .then(r => r.json())
+      .then(data => {
+        const entries = data.entries || [];
+        const dej = entries.find(e => e.service === "dejeuner");
+        const din = entries.find(e => e.service === "diner");
+        const fmt = (label, entry) => {
+          if (entry) {
+            let t = "";
+            if (entry.timestamp) {
+              const d = new Date(entry.timestamp);
+              if (!isNaN(d)) t = " at " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+            }
+            return `✓ ${label} — submitted by ${entry.name}${t}`;
+          }
+          return `○ ${label} — not submitted yet`;
+        };
+        statusEl.innerHTML = fmt("Lunch", dej) + "<br>" + fmt("Dinner", din);
+      })
+      .catch(() => {
+        statusEl.textContent = "Couldn't load today's status (connection).";
+      });
+  }
+
+  document.getElementById("refreshStatusBtn").addEventListener("click", fetchStatus);
+  dateInput.addEventListener("change", fetchStatus);
+  fetchStatus();
+
+  document.querySelectorAll("#serviceToggle button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#serviceToggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedService = btn.dataset.service;
+    });
+  });
+
+  function renderPushList() {
+    const ul = document.getElementById("pushList");
+    ul.innerHTML = "";
+    if (pushItems.length === 0) {
+      ul.appendChild(el("li", { class: "list-empty" }, ["(no dish to push)"]));
+      return;
+    }
+    pushItems.forEach((item, idx) => {
+      const li = el("li", {}, [
+        el("span", {}, [item]),
+        el("button", { type: "button", "data-idx": idx }, ["Remove"]),
+      ]);
+      li.querySelector("button").addEventListener("click", () => {
+        pushItems.splice(idx, 1);
+        renderPushList();
+      });
+      ul.appendChild(li);
+    });
+  }
+  renderPushList();
+
+  document.getElementById("pushAddBtn").addEventListener("click", () => {
+    const input = document.getElementById("pushInput");
+    const val = input.value.trim();
+    if (!val) return;
+    pushItems.push(val);
+    input.value = "";
+    renderPushList();
+  });
+  document.getElementById("pushInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("pushAddBtn").click();
+    }
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (!confirm("Reset the whole sheet?")) return;
+    document.getElementById("nom").value = "";
+    document.querySelectorAll("#serviceToggle button").forEach(b => b.classList.remove("active"));
+    selectedService = null;
+    document.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
+    document.querySelectorAll(".dish-note-input input").forEach(i => i.value = "");
+    document.querySelectorAll(".dish-note-input").forEach(w => w.classList.remove("show"));
+    document.querySelectorAll(".dish-note-toggle").forEach(b => b.textContent = "+ note");
+    document.getElementById("commentInput").value = "";
+    pushItems = [];
+    renderPushList();
+    document.getElementById("statusMsg").textContent = "";
+  });
+
+  function getQty(catKey, idx) {
+    const v = document.getElementById(`qty__${catKey}__${idx}`).value;
+    return v ? parseInt(v, 10) : 0;
+  }
+
+  function getNote(catKey, idx) {
+    const i = document.getElementById(`note__${catKey}__${idx}`);
+    return i ? i.value.trim() : "";
+  }
+
+  function buildRecapList(catKey, listId) {
+    const ul = document.getElementById(listId);
+    ul.innerHTML = "";
+    let any = false;
+    DISHES[catKey].forEach((name, idx) => {
+      const qty = getQty(catKey, idx);
+      const note = getNote(catKey, idx);
+      if (qty > 0 || note) {
+        any = true;
+        const qtyPart = qty > 0 ? ` — ${qty}` : "";
+        const notePart = note ? ` (note: ${note})` : "";
+        ul.appendChild(el("li", {}, [`${name}${qtyPart}${notePart}`]));
+      }
+    });
+    if (!any) ul.appendChild(el("li", { class: "recap-empty" }, ["(no quantity entered)"]));
+  }
+
+  function buildDishesPayload() {
+    const dishes = {};
+    ["picapica", "platos"].forEach(catKey => {
+      DISHES[catKey].forEach((name, idx) => {
+        dishes[name] = getQty(catKey, idx);
+      });
+    });
+    return dishes;
+  }
+
+  function buildRecipeNotesText() {
+    const lines = [];
+    ["picapica", "platos"].forEach(catKey => {
+      DISHES[catKey].forEach((name, idx) => {
+        const note = getNote(catKey, idx);
+        if (note) lines.push(`${name}: ${note}`);
+      });
+    });
+    return lines.join("; ");
+  }
+
+  function lastRecapText(validatedAt) {
+    let lines = [];
+    lines.push(`Kitchen sheet — ${document.getElementById("date").value}`);
+    lines.push(`Service: ${selectedService === "dejeuner" ? "Lunch" : selectedService === "diner" ? "Dinner" : "—"}`);
+    lines.push(`Submitted by: ${document.getElementById("nom").value || "—"}`);
+    if (validatedAt) lines.push(`Submitted at: ${validatedAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`);
+    lines.push("");
+    ["picapica", "platos"].forEach(catKey => {
+      const label = catKey === "picapica" ? "Pica Pica" : "Platos";
+      lines.push(label + ":");
+      let any = false;
+      DISHES[catKey].forEach((name, idx) => {
+        const qty = getQty(catKey, idx);
+        const note = getNote(catKey, idx);
+        if (qty > 0 || note) {
+          lines.push(`  - ${name}${qty > 0 ? " : " + qty : ""}${note ? " (note: " + note + ")" : ""}`);
+          any = true;
+        }
+      });
+      if (!any) lines.push("  (no quantity entered)");
+      lines.push("");
+    });
+    lines.push("Comments:");
+    lines.push("  " + (document.getElementById("commentInput").value.trim() || "(none)"));
+    lines.push("");
+    lines.push("To push:");
+    if (pushItems.length === 0) lines.push("  (none)");
+    else pushItems.forEach(i => lines.push(`  - ${i}`));
+    return lines.join("\n");
+  }
+
+  let lastValidatedAt = null;
+
+  document.getElementById("validateBtn").addEventListener("click", () => {
+    if (!selectedService) {
+      document.getElementById("statusMsg").textContent = "Pick the service (lunch/dinner) before submitting.";
+      document.getElementById("statusMsg").style.color = "var(--accent)";
+      return;
+    }
+    if (!document.getElementById("nom").value.trim()) {
+      document.getElementById("statusMsg").textContent = "Enter the name of the person filling this in before submitting.";
+      document.getElementById("statusMsg").style.color = "var(--accent)";
+      return;
+    }
+
+    lastValidatedAt = new Date();
+    const serviceLabel = selectedService === "dejeuner" ? "Lunch" : "Dinner";
+    const timeLabel = lastValidatedAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    document.getElementById("recapSubText").textContent =
+      `Submitted by ${document.getElementById("nom").value} — ${document.getElementById("date").value} — ${serviceLabel} — at ${timeLabel}`;
+    document.getElementById("recapBadgeText").textContent = `Submitted at ${timeLabel}`;
+
+    buildRecapList("picapica", "recapPicapica");
+    buildRecapList("platos", "recapPlatos");
+
+    const comment = document.getElementById("commentInput").value.trim();
+    document.getElementById("recapCommentValue").textContent = comment || "—";
+    document.getElementById("recapCommentValue").className = comment ? "" : "recap-empty";
+
+    const pushUl = document.getElementById("recapPush");
+    pushUl.innerHTML = "";
+    if (pushItems.length === 0) {
+      pushUl.appendChild(el("li", { class: "recap-empty" }, ["(none)"]));
+    } else {
+      pushItems.forEach(i => pushUl.appendChild(el("li", {}, [i])));
+    }
+
+    try {
+      const record = {
+        date: document.getElementById("date").value,
+        service: selectedService,
+        nom: document.getElementById("nom").value,
+        savedAt: lastValidatedAt.toISOString(),
+        text: lastRecapText(lastValidatedAt),
+      };
+      const history = JSON.parse(localStorage.getItem("fiche-cuisine-history") || "[]");
+      history.push(record);
+      localStorage.setItem("fiche-cuisine-history", JSON.stringify(history));
+    } catch (e) { }
+
+    document.getElementById("statusMsg").textContent = "";
+    document.getElementById("recapStatusMsg").textContent = "";
+    document.getElementById("recapScreen").classList.add("visible");
+    submitToSheet(lastValidatedAt);
+  });
+
+  function submitToSheet(validatedAt) {
+    if (!isScriptConfigured()) return;
+    const payload = {
+      date: document.getElementById("date").value,
+      service: selectedService,
+      name: document.getElementById("nom").value,
+      dishes: buildDishesPayload(),
+      comment: document.getElementById("commentInput").value.trim(),
+      recipeNotes: buildRecipeNotesText(),
+      push: pushItems,
+    };
+    const recapStatusMsg = document.getElementById("recapStatusMsg");
+    recapStatusMsg.style.color = "var(--ok)";
+    recapStatusMsg.textContent = "Saving to the tracking sheet…";
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }).then(() => {
+      recapStatusMsg.textContent = "Saved to the Google Sheet.";
+      fetchStatus();
+    }).catch(() => {
+      recapStatusMsg.style.color = "var(--accent)";
+      recapStatusMsg.textContent = "Connection failed — this sheet could not be saved to the shared tracker.";
+    });
+  }
+
+  document.getElementById("recapCloseBtn").addEventListener("click", () => {
+    document.getElementById("recapScreen").classList.remove("visible");
+  });
+
+  document.getElementById("recapSendBtn").addEventListener("click", () => {
+    const subject = encodeURIComponent(
+      `Kitchen sheet — ${document.getElementById("date").value} — ${selectedService === "dejeuner" ? "Lunch" : "Dinner"}`
+    );
+    const body = encodeURIComponent(lastRecapText(lastValidatedAt));
+    window.location.href = `mailto:${RECIPIENT_EMAIL}?subject=${subject}&body=${body}`;
+    document.getElementById("recapStatusMsg").textContent = "Email draft opened.";
+  });
+</script>
+</body>
+</html>
